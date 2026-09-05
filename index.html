@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0F172A" />
+  <title>Nyalur — Transfer File P2P</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <!-- PWA Install Banner -->
+  <div id="install-banner" class="install-banner hidden">
+    <div class="icon-box">↓</div>
+    <div class="banner-text">
+      <p class="title">Install Nyalur</p>
+      <p class="subtitle">Akses lebih cepat dari home screen</p>
+    </div>
+    <button id="btn-install" class="btn-install">Install</button>
+    <button id="btn-dismiss" class="btn-dismiss">✕</button>
+  </div>
+
+  <main id="app-container">
+    
+    <!-- VIEW: HOME -->
+    <section id="view-home" class="view active animate-fade-in">
+      <div class="header-center">
+        <h1 class="logo"><span class="text-green">NYA</span><span class="text-orange">LUR</span></h1>
+        <p class="tagline">Salurkan file, langsung sampai.</p>
+      </div>
+
+      <div class="device-name-container">
+        <div id="name-display-mode" class="name-mode">
+          <button id="btn-edit-name" class="btn-text">
+            <span id="display-device-name">Perangkat</span> ✎
+          </button>
+        </div>
+        <div id="name-edit-mode" class="name-mode hidden">
+          <input type="text" id="input-device-name" maxlength="20" class="input-name" />
+          <button id="btn-save-name" class="text-green text-sm">OK</button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="nav-send" class="card-btn border-green hover-green pulse-green">
+          <span class="icon text-green">↑</span>
+          <span class="text-green font-bold">KIRIM</span>
+        </button>
+        <button id="nav-receive" class="card-btn border-orange hover-orange pulse-orange">
+          <span class="icon text-orange">↓</span>
+          <span class="text-orange font-bold">TERIMA</span>
+        </button>
+      </div>
+
+      <div class="history-container">
+        <div class="history-header">
+          <h2 class="history-title">Riwayat <span id="history-count">(0)</span></h2>
+          <button id="btn-clear-history" class="btn-text-small text-muted">Hapus</button>
+        </div>
+        <div id="history-list" class="history-list">
+          <!-- Item riwayat akan di-render di sini via JS -->
+        </div>
+        <div id="history-empty" class="history-empty hidden">
+          <p>Belum ada transfer</p>
+        </div>
+      </div>
+      
+      <div class="footer">Nyalur v0.4.0 · P2P · Tanpa iklan</div>
+    </section>
+
+    <!-- VIEW: SEND -->
+    <section id="view-send" class="view hidden">
+      <div class="top-bar">
+        <button class="btn-back" data-target="home">←</button>
+        <h1 class="view-title text-green">KIRIM FILE</h1>
+      </div>
+      
+      <div id="send-state-idle" class="state-container">
+        <label id="drop-zone" class="drop-zone">
+          <p class="text-muted">Tap atau Drop file di sini</p>
+          <input type="file" id="file-input" multiple class="hidden" />
+        </label>
+        
+        <div id="selected-files-list" class="file-list"></div>
+        
+        <div class="form-group">
+          <label class="label">Kode Room Penerima</label>
+          <div class="input-group">
+            <input type="text" id="input-room-code" placeholder="XXXX" maxlength="4" class="input-code uppercase" />
+            <button id="btn-scan-qr" class="btn-icon">📷</button>
+          </div>
+        </div>
+        
+        <button id="btn-connect-send" class="btn-primary bg-green" disabled>Kirim</button>
+      </div>
+
+      <div id="send-state-transferring" class="state-container hidden text-center">
+        <div class="progress-circle text-green" id="send-progress-circle">0%</div>
+        <p id="send-file-name" class="truncate">...</p>
+        <div class="progress-bar-bg"><div class="progress-bar bg-green" id="send-progress-bar"></div></div>
+        <div class="progress-stats">
+          <span id="send-bytes">0 B / 0 B</span>
+          <span id="send-speed">0 B/s</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: RECEIVE -->
+    <section id="view-receive" class="view hidden">
+      <div class="top-bar">
+        <button class="btn-back" data-target="home">←</button>
+        <h1 class="view-title text-orange">TERIMA FILE</h1>
+      </div>
+
+      <div id="receive-state-waiting" class="state-container text-center">
+        <p class="label">KODE ROOM</p>
+        <h2 id="display-room-code" class="room-code text-orange">----</h2>
+        <button id="btn-copy-code" class="btn-secondary">Salin Kode</button>
+        <div id="qr-container" class="qr-box hidden">
+          <img id="qr-image" src="" alt="QR" />
+        </div>
+        <p class="text-muted text-sm mt-4">Menunggu koneksi...</p>
+      </div>
+      
+      <div id="receive-state-incoming" class="state-container hidden text-center">
+        <h2 class="view-title">Transfer Masuk</h2>
+        <p id="incoming-sender-name" class="text-orange">Pengirim</p>
+        <div id="incoming-file-list" class="file-list mb-4"></div>
+        <div class="action-buttons gap-4">
+          <button id="btn-reject" class="btn-secondary flex-1">Tolak</button>
+          <button id="btn-accept" class="btn-primary bg-orange flex-1">Terima</button>
+        </div>
+      </div>
+
+      <div id="receive-state-transferring" class="state-container hidden text-center">
+        <div class="progress-circle text-orange" id="recv-progress-circle">0%</div>
+        <p id="recv-file-name" class="truncate">...</p>
+        <div class="progress-bar-bg"><div class="progress-bar bg-orange" id="recv-progress-bar"></div></div>
+        <div class="progress-stats">
+          <span id="recv-bytes">0 B / 0 B</span>
+          <span id="recv-speed">0 B/s</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
