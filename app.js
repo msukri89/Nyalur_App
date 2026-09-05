@@ -407,5 +407,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       setReceiveState('waiting');
     }
   });
-
+// ==========================================
+  // REGISTRASI SERVICE WORKER (UNTUK PWA / OFFLINE)
+  // ==========================================
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        // Sesuaikan path '/Nyalur/sw.js' dengan lokasi file Anda
+        await navigator.serviceWorker.register('/Nyalur/sw.js', {
+          scope: '/Nyalur/'
+        });
+        console.log('Service Worker siap - Aplikasi bisa offline!');
+      } catch (err) {
+        console.warn('Service Worker gagal didaftarkan:', err);
+      }
+    });
+  }
 });
